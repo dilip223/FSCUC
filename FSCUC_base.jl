@@ -5,7 +5,6 @@ using Plots
 using CPLEX
 using Combinatorics
 using Random
-
 Random.seed!(1234)
 rand(376)
 
@@ -44,11 +43,10 @@ model = UnitCommitment.build_model(
 
 #Initialize the generator dynamics
 DData = freq_initialize(instance)
-
 #Invoke the rocof constraints considering a selected number of generator contingencies
-n_cont = 1 #Number of generator contingencies to consider
+n_cont = 0 #Number of generator contingencies to consider
 if n_cont >= 1
-   constraint_mode = "Dynamic" #Specify constraint mode as "Constant", "Static", "Dynamic"
+   constraint_mode = "Constant" #Specify constraint mode as "Constant", "Static", "Dynamic"
    rocof_constraint(instance, model, DData, n_cont, constraint_mode)
 end
 
@@ -67,13 +65,5 @@ solvetime = solve_time(model)
 #Get the frequency nadir and maximum RoCoF value
 f_max = zeros((instance.time))
 rocof = zeros((instance.time))
-if n_cont>=1
-   freq_test(instance,model,f_max,rocof,DData,n_cont)
-end
-
-plot(rocof.*60, legend=false, xlabel= "Time (hours)", ylabel= "RoCoF (Hz/s)")
-tot_units =zeros((instance.time,1))
-for i in 1:instance.time
-       tot_units[i] = sum(value(model[:is_on][instance.units[g].name,i]) for g in 1:length(instance.units))
-end
-plot(tot_units,legend=false, xlabel= "Time (hours)", ylabel= "No. of units online")
+freq_test(instance,model,f_max,rocof,DData,n_cont)
+plot_figures(instance, model, f_max, rocof)

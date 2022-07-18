@@ -26,6 +26,9 @@ function freq_test(instance::UnitCommitmentInstance,
          F_T=0
          H_T=0
          D_T=0
+         if n_cont == 0
+            n_cont = n_cont + 1
+         end
 
          pow_mat = [(instance.units[g].min_power[t]+value(model[:prod_above][instance.units[g].name,t])).*value(model[:is_on][instance.units[g].name,t]) for g in 1:length(instance.units)]
          pow_max = sort(pow_mat,rev=true)[1:n_cont]
@@ -53,4 +56,15 @@ function freq_test(instance::UnitCommitmentInstance,
          rocof[t] = pow_max/(2*H_T)
 
        end
+end
+
+function plot_figures(instance, model, f_max, rocof)
+   plot(rocof.*60, legend=false, xlabel= "Time (hours)", ylabel= "RoCoF (Hz/s)")
+   savefig("rocof_plot.png")
+   tot_units =zeros((instance.time,1))
+   for i in 1:instance.time
+          tot_units[i] = sum(value(model[:is_on][instance.units[g].name,i]) for g in 1:length(instance.units))
+   end
+   plot(tot_units,legend=false, xlabel= "Time (hours)", ylabel= "No. of units online")
+   savefig("tot_units_commit.png")
 end
