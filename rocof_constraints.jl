@@ -15,10 +15,8 @@ function rocof_constraint(instance::UnitCommitmentInstance,
                     sum(instance.units[g].max_power[1] for g in 1:length(instance.units)),rev=true)[1:n_cont]
         H_loss = sum(H[ind_Hloss])
         for t in 1:instance.time
-            for g in 1:length(instance.units)
-                @constraint(model,  sum(H[i]*model[:is_on][instance.units[i].name,t]
-                 for i in 1:length(instance.units)) - H_loss >= sum(max_deltaP)*60)
-            end
+            @constraint(model,  sum(H[i]*model[:is_on][instance.units[i].name,t]
+             for i in 1:length(instance.units)) - H_loss >= sum(max_deltaP)*60)
         end
     end
 

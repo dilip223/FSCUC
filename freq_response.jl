@@ -58,7 +58,11 @@ function freq_test(instance::UnitCommitmentInstance,
        end
 end
 
-function plot_figures(instance, model, f_max, rocof)
+function plot_figures(instance::UnitCommitmentInstance,
+                      model:: JuMP.Model,
+                      f_max:: Vector{Float64},
+                      rocof:: Vector{Float64})
+
    plot(rocof.*60, legend=false, xlabel= "Time (hours)", ylabel= "RoCoF (Hz/s)")
    savefig("rocof_plot.png")
    tot_units =zeros((instance.time,1))
@@ -67,4 +71,5 @@ function plot_figures(instance, model, f_max, rocof)
    end
    plot(tot_units,legend=false, xlabel= "Time (hours)", ylabel= "No. of units online")
    savefig("tot_units_commit.png")
+
 end
