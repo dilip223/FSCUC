@@ -43,13 +43,13 @@ function rocof_constraint(instance::UnitCommitmentInstance,
         for t in 1:instance.time
             for g in 1:length(comb_units)
                     for k in 1:n_cont
-                        @constraint(model, temp_prod[t,g,k] <= model[:is_on][instance.units[comb_units[g][k]].name,t]*50000)
+                        @constraint(model, temp_prod[t,g,k] <= model[:is_on][instance.units[comb_units[g][k]].name,t]*instance.units[comb_units[g][k]].max_power[t])
                         @constraint(model, temp_prod[t,g,k] >= 0)
                         @constraint(model, temp_prod[t,g,k] <= instance.units[comb_units[g][k]].min_power[t]
                                                 + model[:prod_above][instance.units[comb_units[g][k]].name,t])
                         @constraint(model, temp_prod[t,g,k] >= instance.units[comb_units[g][k]].min_power[t]
                                                 + model[:prod_above][instance.units[comb_units[g][k]].name,t]
-                                                - (1-model[:is_on][instance.units[comb_units[g][k]].name,t])*50000)
+                                                - (1-model[:is_on][instance.units[comb_units[g][k]].name,t])*instance.units[comb_units[g][k]].max_power[t])
                     end
 
                     @constraint(model,  sum(H[i]*model[:is_on][instance.units[i].name,t] for i in 1:length(instance.units))
