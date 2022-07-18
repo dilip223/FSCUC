@@ -41,15 +41,16 @@ model = UnitCommitment.build_model(
 #     @constraint(model, z-pow_gen[g] <= (800-0)*(1-b[g]))
 # end
 #@constraint(model, z <=200)
+
+#Initialize the generator dynamics
 DData = freq_initialize(instance)
 
-
+#Invoke the rocof constraints considering a selected number of generator contingencies
 n_cont = 1 #Number of generator contingencies to consider
 if n_cont >= 1
    constraint_mode = "Dynamic" #Specify constraint mode as "Constant", "Static", "Dynamic"
    rocof_constraint(instance, model, DData, n_cont, constraint_mode)
 end
-
 
 # Solve the model
 UnitCommitment.optimize!(model)
@@ -57,18 +58,19 @@ solution = UnitCommitment.solution(model)
 UnitCommitment.write("C:/Dilip/ANL/FSCUC/output.json", solution)
 UnitCommitment.validate(instance, solution)
 
-
+#Get the solver time from JuMP
 function solve_time(model::Model)
     return MOI.get(model, MOI.SolveTime())
 end
 solvetime = solve_time(model)
 
+#Get the frequency nadir and maximum RoCoF value
 f_max = zeros((instance.time))
 rocof = zeros((instance.time))
-
 if n_cont>=1
    freq_test(instance,model,f_max,rocof,DData,n_cont)
 end
+
 plot(rocof.*60, legend=false, xlabel= "Time (hours)", ylabel= "RoCoF (Hz/s)")
 tot_units =zeros((instance.time,1))
 for i in 1:instance.time
