@@ -27,11 +27,12 @@ function freq_test(instance::UnitCommitmentInstance,
          H_T=0
          D_T=0
          if n_cont == 0
-            n_cont = n_cont + 1
+            n_cont = n_cont + 3
          end
 
          pow_mat = [(instance.units[g].min_power[t]+value(model[:prod_above][instance.units[g].name,t])).*value(model[:is_on][instance.units[g].name,t]) for g in 1:length(instance.units)]
          pow_max = sort(pow_mat,rev=true)[1:n_cont]
+         
          ind_max = sortperm(pow_mat,rev=true)[1:n_cont]
 
          pow_max = sum(pow_max)./sum(instance.units[g].max_power[t]
@@ -41,11 +42,11 @@ function freq_test(instance::UnitCommitmentInstance,
          temp[ind_max].= 0
             for g in 1:length(instance.units)
                  on_status = temp[g]
-                 const_par = instance.units[g].max_power[T]/sum(instance.units[g].max_power[1] for g in 1:length(instance.units))
-                 R_T = R_T+(DData.K[g]/DData.R[g])*on_status*const_par
-                 F_T = F_T+(DData.F[g]*DData.K[g]/DData.R[g])*on_status*const_par
-                 H_T = H_T+ DData.H[g]*on_status*const_par
-                 D_T = D_T+ DData.D[g]*on_status*const_par
+                 #const_par = instance.units[g].max_power[T]/sum(instance.units[g].max_power[1] for g in 1:length(instance.units))
+                 R_T = R_T+(DData.K[g]/DData.R[g])*on_status*DData.pu[g]
+                 F_T = F_T+(DData.F[g]*DData.K[g]/DData.R[g])*on_status*DData.pu[g]
+                 H_T = H_T+ DData.H[g]*on_status*DData.pu[g]
+                 D_T = D_T+ DData.D[g]*on_status*DData.pu[g]
             end
          omega_n = sqrt((D_T+R_T)/(2*H_T*DData.T_r))
          zeta = (2*H_T+DData.T_r*(D_T+F_T))/(2*sqrt(2*DData.T_r*H_T*(D_T+R_T)))
@@ -63,13 +64,13 @@ function plot_figures(instance::UnitCommitmentInstance,
                       f_max:: Vector{Float64},
                       rocof:: Vector{Float64})
 
-   plot(rocof.*60, legend=false, xlabel= "Time (hours)", ylabel= "RoCoF (Hz/s)")
+   #plot(rocof.*60, legend=false, xlabel= "Time (hours)", ylabel= "RoCoF (Hz/s)")
    savefig("rocof_plot.png")
    tot_units =zeros((instance.time,1))
    for i in 1:instance.time
           tot_units[i] = sum(value(model[:is_on][instance.units[g].name,i]) for g in 1:length(instance.units))
    end
-   plot(tot_units,legend=false, xlabel= "Time (hours)", ylabel= "No. of units online")
+   #plot(tot_units,legend=false, xlabel= "Time (hours)", ylabel= "No. of units online")
    savefig("tot_units_commit.png")
 
 end
