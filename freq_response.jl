@@ -1,22 +1,8 @@
-function freq_initialize(instance::UnitCommitmentInstance)
-
-   H_base = 3 .+ 6 .* rand(Float64,(length(instance.units)))
-   R_base = 0.03 .+ 0.08 .* rand(Float64,(length(instance.units)))
-   K_base =  0.8 .+ 0.4 .* rand(Float64,(length(instance.units)))
-   F_base = 0.1 .+ 0.25 .* rand(Float64,(length(instance.units)))
-   D_base = 0.6 .* ones(length(instance.units))
-   T_r = 8.0
-   pu = [instance.units[g].max_power[1]/sum(instance.units[g].max_power[1] for g in 1:length(instance.units))
-            for g in 1:length(instance.units)]
-   DData = DynamicsData(R_base,K_base,F_base,D_base,H_base,pu,T_r)
-   return DData
-
-end
-
 function freq_test(instance::UnitCommitmentInstance,
                   model::JuMP.Model,
                   f_max::Vector{Float64},
                   rocof::Vector{Float64},
+                  steady_freq::Vector{Float64},
                   DData::DynamicsData,
                   n_cont::Int)
 
@@ -26,20 +12,18 @@ function freq_test(instance::UnitCommitmentInstance,
          F_T=0
          H_T=0
          D_T=0
-         if n_cont == 0
-            n_cont = n_cont + 3
-         end
 
-         pow_mat = [(instance.units[g].min_power[t]+value(model[:prod_above][instance.units[g].name,t])).*value(model[:is_on][instance.units[g].name,t]) for g in 1:length(instance.units)]
+         pow_mat = [(instance.units[g].min_power[1]+value(model[:prod_above][instance.units[g].name,t])).*value(model[:is_on][instance.units[g].name,t]) for g in 1:length(instance.units)]
          pow_max = sort(pow_mat,rev=true)[1:n_cont]
 
          ind_max = sortperm(pow_mat,rev=true)[1:n_cont]
 
-         pow_max = sum(pow_max)./sum(instance.units[g].max_power[t]
+         pow_max = sum(pow_max)./sum(instance.units[g].max_power[1]
                                   for g in 1:length(instance.units))
          temp = [value(model[:is_on][instance.units[g].name,t])
                               for g in 1:length(instance.units)]
          temp[ind_max].= 0
+         println("pow_max= $pow_max at index= $ind_max")
             for g in 1:length(instance.units)
                  on_status = temp[g]
                  #const_par = instance.units[g].max_power[T]/sum(instance.units[g].max_power[1] for g in 1:length(instance.units))
@@ -55,6 +39,7 @@ function freq_test(instance::UnitCommitmentInstance,
          f_max[t] = pow_max/(D_T+R_T)*(1+sqrt(DData.T_r*(R_T-F_T)/(2*H_T))*
                      exp(-zeta*omega_n*t_max))
          rocof[t] = pow_max/(2*H_T)
+         steady_freq[t] = pow_max/(D_T+R_T)
 
        end
 end
