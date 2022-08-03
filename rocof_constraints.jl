@@ -16,26 +16,28 @@ function rocof_constraint(instance::UnitCommitmentInstance,
         H_loss = sum(H[ind_Hloss])
         for t in 1:instance.time
             @constraint(model,  sum(H[i]*model[:is_on][instance.units[i].name,t]
-             for i in 1:length(instance.units)) - H_loss - sum(max_deltaP)*60 >= 1e-4)
+             for i in 1:length(instance.units)) - H_loss - sum(max_deltaP)*60 >= 0)
         end
     end
 
 
 
     if constraint_mode == "Static"
-        #Static Model (rocof constraint) with k generator failures
+        #Static Model (rocof constraint) with n_cont generator failures
         for t in 1:instance.time
             for g in 1:length(comb_units)
-                @constraint(model,  sum(H[i]*model[:is_on][instance.units[i].name,t] for i in 1:length(instance.units))
-                - sum(H[comb_units[g][i]]*model[:is_on][instance.units[comb_units[g][i]].name,t] for i in 1:n_cont)
-                     - 60*sum(model[:is_on][instance.units[comb_units[g][i]].name,t]*DData.pu[comb_units[g][i]] for i in 1:n_cont) >= 1e-4)
+                @constraint(model, sum(H[i]*model[:is_on][instance.units[i].name,t] for i in 1:length(instance.units))
+                   - sum(H[comb_units[g][i]]*model[:is_on][instance.units[comb_units[g][i]].name,t] for i in 1:n_cont)
+                   - 60*sum(model[:is_on][instance.units[comb_units[g][i]].name,t]*DData.pu[comb_units[g][i]] for i in 1:n_cont) >= 0)
             end
         end
+
     end
 
 
     if constraint_mode == "Dynamic"
-        #Dynamic Model (rocof constraint)
+        #Dynamic Model (rocof constraint) with n_cont generator failures
+
         @variable(model, temp_prod[1:instance.time,1:length(instance.units)])
 
         for t in 1:instance.time
@@ -52,7 +54,7 @@ function rocof_constraint(instance::UnitCommitmentInstance,
 
                     @constraint(model,  sum(H[i]*model[:is_on][instance.units[i].name,t] for i in 1:length(instance.units))
                            - sum(H[comb_units[g][i]]*model[:is_on][instance.units[comb_units[g][i]].name,t] for i in 1:n_cont)
-                                - 60*sum(temp_prod[t,comb_units[g][i]]/sum(instance.units[i].max_power[1] for i in 1:length(instance.units)) for i in 1:n_cont) >= 1e-4)
+                                - 60*sum(temp_prod[t,comb_units[g][i]]/sum(instance.units[i].max_power[1] for i in 1:length(instance.units)) for i in 1:n_cont) >= 0)
              end
         end
 
