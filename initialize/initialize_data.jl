@@ -32,19 +32,17 @@ function freq_initialize(instance::UnitCommitmentInstance)
 
 end
 
-function ESS_initialize(eta_c::Float64,
-                        eta_d::Float64,
-                        capacity::Float64,
-                        discharge_lim::Float64,
-                        charge_lim::Float64,
+function ESS_initialize(instance::UnitCommitmentInstance,
                         ess_percent::Float64)
-
-
+   eta_c = eta_d = 0.85
+   EScap = 200.0
+   power_p = 50.0
+   power_n = -50.0
    S = round(Int64,ess_percent*length(instance.buses))
    rand_position = rand(1:length(instance.buses),S)
    ess_bus = [instance.buses[rand_position[i]].name for i in 1:S]
 
-   ESS_details = ESSData(eta_c,eta_d,capacity,discharge_lim,charge_lim,ess_bus)
+   ESS_details = ESSData(eta_c,eta_d,EScap,power_p,power_n,ess_bus)
    return ESS_details
 
 end

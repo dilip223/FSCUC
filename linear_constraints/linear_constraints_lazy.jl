@@ -42,7 +42,7 @@ function linear_constraints_lazy(instance::UnitCommitmentInstance,
                 if viol_ss > 1e-4
                     con = @build_constraint(sum(model[:is_on][instance.units[g].name,t]*RD[g] for g in 1:length(instance.units))
                                                 - RD_loss - sum(max_deltaP)*60/0.3 >= 0)
-                    println("SS violation = $viol_ss in period $t")
+                    #println("SS violation = $viol_ss in period $t")
                     MOI.submit(model, MOI.LazyConstraint(cb_data), con)
 
                 end
@@ -50,7 +50,7 @@ function linear_constraints_lazy(instance::UnitCommitmentInstance,
                 if viol_rocof > 1e-4
                     con = @build_constraint(sum(H[g]*model[:is_on][instance.units[g].name,t] for g in 1:length(instance.units))
                                                 - H_loss - sum(max_deltaP)*60 >= 0)
-                    println("RoCoF violation = $viol_rocof in period $t")
+                    #println("RoCoF violation = $viol_rocof in period $t")
                     MOI.submit(model, MOI.LazyConstraint(cb_data), con)
 
                 end
