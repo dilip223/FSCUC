@@ -17,32 +17,31 @@ struct ESSData
 end
 
 function freq_initialize(instance::UnitCommitmentInstance)
-
-   H_base = 3 .+ 6 .* rand(Float64,(length(instance.units)))
-   R_base = 0.03 .+ 0.08 .* rand(Float64,(length(instance.units)))
-   K_base =  0.8 .+ 0.4 .* rand(Float64,(length(instance.units)))
-   F_base = 0.1 .+ 0.25 .* rand(Float64,(length(instance.units)))
-   D_base = 0.6 .* ones(length(instance.units))
+   thermal_units = instance.scenarios[1].thermal_units
+   H_base = 3 .+ 6 .* rand(Float64, (length(thermal_units)))
+   R_base = 0.03 .+ 0.08 .* rand(Float64, (length(thermal_units)))
+   K_base = 0.8 .+ 0.4 .* rand(Float64, (length(thermal_units)))
+   F_base = 0.1 .+ 0.25 .* rand(Float64, (length(thermal_units)))
+   D_base = 0.6 .* ones(length(thermal_units))
    T_r = 8.0
-   pu = [instance.units[g].max_power[1]/sum(instance.units[g].max_power[1] for g in 1:length(instance.units))
-            for g in 1:length(instance.units)]
+   P_tot = sum(thermal_units[g].max_power[1] for g in eachindex(thermal_units))
+   pu = [thermal_units[g].max_power[1] / P_tot for g in eachindex(thermal_units)]
 
-   DData = DynamicsData(R_base,K_base,F_base,D_base,H_base,pu,T_r)
-   return DData
+   return DynamicsData(R_base, K_base, F_base, D_base, H_base, pu, T_r)
 
 end
 
-function ESS_initialize(instance::UnitCommitmentInstance,
-                        ess_percent::Float64)
+function ESS_initialize(
+   instance::UnitCommitmentInstance,
+   ess_percent::Float64
+)
    eta_c = eta_d = 0.85
    EScap = 200.0
    power_p = 50.0
    power_n = -50.0
-   S = round(Int64,ess_percent*length(instance.buses))
-   rand_position = rand(1:length(instance.buses),S)
+   S = round(Int64, ess_percent * length(instance.buses))
+   rand_position = rand(1:length(instance.buses), S)
    ess_bus = [instance.buses[rand_position[i]].name for i in 1:S]
 
-   ESS_details = ESSData(eta_c,eta_d,EScap,power_p,power_n,ess_bus)
-   return ESS_details
-
+   return ESSData(eta_c, eta_d, EScap, power_p, power_n, ess_bus)
 end
